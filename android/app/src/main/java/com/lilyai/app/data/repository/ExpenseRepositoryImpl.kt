@@ -4,6 +4,8 @@ import com.lilyai.app.data.local.ExpenseDao
 import com.lilyai.app.data.local.ExpenseEntity
 import com.lilyai.app.data.remote.ApiService
 import com.lilyai.app.data.remote.dto.CreateExpenseRequest
+import com.lilyai.app.data.remote.dto.EffectiveBudgetResponse
+import com.lilyai.app.data.remote.dto.SetBudgetRequest
 import com.lilyai.app.data.remote.dto.SubmitDayRequest
 import com.lilyai.app.domain.model.*
 import com.lilyai.app.domain.repository.ExpenseRepository
@@ -64,8 +66,10 @@ class ExpenseRepositoryImpl @Inject constructor(
         expenseDao.delete(id)
     }
 
-    override suspend fun getDailySummary(date: String?): ExpenseSummary =
-        apiService.getDailySummary(date).toDomain()
+    override suspend fun getDailySummary(date: String?): ExpenseSummary {
+        val d = date ?: java.time.LocalDate.now().toString()
+        return apiService.getDailySummary(d).toDomain()
+    }
 
     override suspend fun getWeeklySummary(date: String?): ExpenseSummary =
         apiService.getWeeklySummary(date).toDomain()
@@ -94,5 +98,14 @@ class ExpenseRepositoryImpl @Inject constructor(
                 // Will retry on next sync
             }
         }
+    }
+
+    override suspend fun getBudget(): EffectiveBudgetResponse {
+        val localDate = java.time.LocalDate.now().toString()
+        return apiService.getBudget(localDate)
+    }
+
+    override suspend fun setBudget(dailyBudget: Double) {
+        apiService.setBudget(SetBudgetRequest(dailyBudget.toBigDecimal().toPlainString()))
     }
 }

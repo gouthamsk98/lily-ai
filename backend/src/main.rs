@@ -87,6 +87,7 @@ async fn main() {
         .route("/analytics/category", get(api::analytics::category))
         .route("/daily-status", get(api::daily_status::check_status))
         .route("/daily-status/submit", post(api::daily_status::submit_day))
+        .route("/budget", get(api::budget::get_budget).put(api::budget::set_budget))
         .with_state(pool.clone())
         .merge(notification_routes)
         .merge(meeting_routes)

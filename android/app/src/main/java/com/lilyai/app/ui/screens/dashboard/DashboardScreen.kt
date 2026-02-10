@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,6 +54,48 @@ fun DashboardScreen(
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.padding(32.dp))
         } else {
+            // Budget Card
+            state.budget?.let { budget ->
+                val dailyVal = budget.dailyBudget.toDoubleOrNull() ?: 0.0
+                if (dailyVal > 0) {
+                    BudgetCard(budget, currencyFormat)
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
+            // Budget Setting
+            var showBudgetDialog by remember { mutableStateOf(false) }
+            val budgetVal = state.budget?.dailyBudget?.toDoubleOrNull() ?: 0.0
+            if (state.budget == null || budgetVal == 0.0) {
+                OutlinedButton(
+                    onClick = { showBudgetDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Set Daily Budget Limit")
+                }
+                Spacer(Modifier.height(16.dp))
+            } else {
+                TextButton(onClick = { showBudgetDialog = true }) {
+                    Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Change Budget", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (showBudgetDialog) {
+                BudgetSettingDialog(
+                    currentBudget = budgetVal,
+                    onDismiss = { showBudgetDialog = false },
+                    onSave = { amount ->
+                        viewModel.setBudget(amount)
+                        showBudgetDialog = false
+                    }
+                )
+            }
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 state.dailySummary?.let {
                     SummaryCardItem("Today", currencyFormat.format(it.total), it.count, Primary, Modifier.weight(1f))
@@ -154,4 +197,114 @@ private fun SummaryCardItem(
             Text("$count expense${if (count != 1) "s" else ""}", style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
         }
     }
+}
+
+@Composable
+private fun BudgetCard(
+    budget: com.lilyai.app.data.remote.dto.EffectiveBudgetResponse,
+    currencyFormat: NumberFormat,
+) {
+    val dailyBudget = budget.dailyBudget.toDoubleOrNull() ?: 0.0
+    val effectiveToday = budget.effectiveBudgetToday.toDoubleOrNull() ?: 0.0
+    val spentToday = budget.spentToday.toDoubleOrNull() ?: 0.0
+    val remainingToday = budget.remainingToday.toDoubleOrNull() ?: 0.0
+    val carriedOver = budget.carriedOver.toDoubleOrNull() ?: 0.0
+
+    val progress = if (effectiveToday > 0)
+        (spentToday / effectiveToday).toFloat().coerceIn(0f, 1.5f)
+    else 0f
+    val isOverBudget = remainingToday < 0
+    val barColor = if (isOverBudget) Error else Primary
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isOverBudget) Error.copy(alpha = 0.08f) else Primary.copy(alpha = 0.08f)
+        ),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Today's Budget", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    currencyFormat.format(effectiveToday),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = barColor,
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { progress.coerceAtMost(1f) },
+                modifier = Modifier.fillMaxWidth().height(8.dp),
+                color = barColor,
+                trackColor = barColor.copy(alpha = 0.15f),
+            )
+
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Spent", style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
+                    Text(currencyFormat.format(spentToday), fontWeight = FontWeight.Medium)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Remaining", style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
+                    Text(
+                        currencyFormat.format(remainingToday),
+                        fontWeight = FontWeight.Medium,
+                        color = if (isOverBudget) Error else Primary,
+                    )
+                }
+            }
+
+            if (carriedOver != 0.0) {
+                Spacer(Modifier.height(4.dp))
+                val sign = if (carriedOver > 0) "+" else ""
+                Text(
+                    "Carryover: $sign${currencyFormat.format(carriedOver)} (base: ${currencyFormat.format(dailyBudget)})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BudgetSettingDialog(
+    currentBudget: Double,
+    onDismiss: () -> Unit,
+    onSave: (Double) -> Unit,
+) {
+    var text by remember { mutableStateOf(if (currentBudget > 0) currentBudget.toLong().toString() else "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Set Daily Budget") },
+        text = {
+            Column {
+                Text("Enter your daily budget limit in ₹", style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.filter { c -> c.isDigit() || c == '.' } },
+                    label = { Text("Amount (₹)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val amount = text.toDoubleOrNull()
+                    if (amount != null && amount >= 0) onSave(amount)
+                },
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }

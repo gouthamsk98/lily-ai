@@ -2,6 +2,7 @@ package com.lilyai.app.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lilyai.app.data.remote.dto.EffectiveBudgetResponse
 import com.lilyai.app.domain.model.DailyStatus
 import com.lilyai.app.domain.model.ExpenseSummary
 import com.lilyai.app.domain.model.MeetingNote
@@ -19,6 +20,7 @@ data class DashboardState(
     val monthlySummary: ExpenseSummary? = null,
     val dailyStatus: DailyStatus? = null,
     val recentMeetings: List<MeetingNote> = emptyList(),
+    val budget: EffectiveBudgetResponse? = null,
     val isLoading: Boolean = true,
 )
 
@@ -42,7 +44,8 @@ class DashboardViewModel @Inject constructor(
                 val monthly = expenseRepository.getMonthlySummary()
                 val status = expenseRepository.getDailyStatus()
                 val meetings = try { meetingNoteRepository.getMeetingNotes().take(3) } catch (_: Exception) { emptyList() }
-                _state.value = DashboardState(daily, weekly, monthly, status, meetings, false)
+                val budget = try { expenseRepository.getBudget() } catch (_: Exception) { null }
+                _state.value = DashboardState(daily, weekly, monthly, status, meetings, budget, false)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false)
             }
@@ -53,6 +56,15 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 expenseRepository.submitDay()
+                refresh()
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun setBudget(amount: Double) {
+        viewModelScope.launch {
+            try {
+                expenseRepository.setBudget(amount)
                 refresh()
             } catch (_: Exception) {}
         }

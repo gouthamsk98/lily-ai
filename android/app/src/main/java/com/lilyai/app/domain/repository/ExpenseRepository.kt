@@ -1,5 +1,6 @@
 package com.lilyai.app.domain.repository
 
+import com.lilyai.app.data.remote.dto.EffectiveBudgetResponse
 import com.lilyai.app.domain.model.*
 
 interface ExpenseRepository {
@@ -12,4 +13,6 @@ interface ExpenseRepository {
     suspend fun getDailyStatus(): DailyStatus
     suspend fun submitDay(date: String? = null)
     suspend fun syncPendingExpenses()
+    suspend fun getBudget(): EffectiveBudgetResponse
+    suspend fun setBudget(dailyBudget: Double): Unit
 }

@@ -38,6 +38,12 @@ interface ApiService {
     @POST("daily-status/submit")
     suspend fun submitDay(@Body request: SubmitDayRequest): DailyStatusResponse
 
+    @GET("budget")
+    suspend fun getBudget(@Query("date") date: String? = null): EffectiveBudgetResponse
+
+    @PUT("budget")
+    suspend fun setBudget(@Body request: SetBudgetRequest): BudgetSettingResponse
+
     @POST("notifications/register")
     suspend fun registerDevice(@Body request: Map<String, String>)
 
