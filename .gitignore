@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+target/
+.gradle/
+build/
+*.class
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rust
+target/
+**/*.rs.bk
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# Android
+*.apk
+*.aab
+*.dex
+*.ap_
+local.properties
+*.iml
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+
+# Docker
+*.log
+
+# Compiled
+*.o
+*.so
+*.dylib

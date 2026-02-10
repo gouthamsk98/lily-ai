@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  backend:
+    image: ${ECR_BACKEND_IMAGE}
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      HOST: 0.0.0.0
+      PORT: 8080
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
+      COGNITO_REGION: ${COGNITO_REGION}
+      COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID}
+      SNS_PLATFORM_APPLICATION_ARN: ${SNS_PLATFORM_APPLICATION_ARN}
+      RUST_LOG: budget_tracker_backend=info,tower_http=info
+    restart: unless-stopped
+
+  web:
+    image: ${ECR_WEB_IMAGE}
+    ports:
+      - "80:80"
+    restart: unless-stopped
