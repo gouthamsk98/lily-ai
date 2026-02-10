@@ -91,7 +91,8 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "COGNITO_REGION", value = var.aws_region },
       { name = "COGNITO_APP_CLIENT_ID", value = aws_cognito_user_pool_client.main.id },
       { name = "SNS_PLATFORM_APPLICATION_ARN", value = "" },
-      { name = "RUST_LOG", value = "budget_tracker_backend=info,tower_http=info" },
+      { name = "MEETING_AUDIO_S3_BUCKET", value = "lily-ai-meeting-audio" },
+      { name = "RUST_LOG", value = "lily_ai_backend=info,tower_http=info" },
     ]
     logConfiguration = {
       logDriver = "awslogs"

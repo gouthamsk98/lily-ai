@@ -41,6 +41,15 @@ async fn main() {
     let auth_service = AuthService::new(config.clone());
     let auth_state = (auth_service.clone(), pool.clone());
 
+    // Initialize meeting service if S3 bucket configured
+    let meeting_service: Option<services::meeting_service::MeetingService> = if let Some(bucket) = &config.meeting_audio_s3_bucket {
+        Some(services::meeting_service::MeetingService::new(bucket.clone(), config.cognito_region.clone()).await)
+    } else {
+        tracing::warn!("MEETING_AUDIO_S3_BUCKET not set – meeting audio upload disabled");
+        None
+    };
+    let meeting_state = (pool.clone(), meeting_service.clone());
+
     // Notification registration needs both pool and config
     let notification_routes = Router::new()
         .route(
@@ -48,6 +57,24 @@ async fn main() {
             post(api::daily_status::register_device),
         )
         .with_state((pool.clone(), config.clone()));
+
+    // Meeting notes routes (some need meeting_service for S3/Transcribe)
+    let meeting_routes = Router::new()
+        .route("/meeting-notes", post(api::meeting_notes::create_meeting_note))
+        .route("/meeting-notes", get(api::meeting_notes::list_meeting_notes))
+        .with_state(pool.clone())
+        .merge(
+            Router::new()
+                .route("/meeting-notes/{id}", get(api::meeting_notes::get_meeting_note))
+                .with_state(pool.clone())
+        )
+        .merge(
+            Router::new()
+                .route("/meeting-notes/{id}", delete(api::meeting_notes::delete_meeting_note))
+                .route("/meeting-notes/{id}/upload", post(api::meeting_notes::upload_audio))
+                .route("/meeting-notes/{id}/transcription", get(api::meeting_notes::check_transcription))
+                .with_state(meeting_state)
+        );
 
     // Protected API routes (pool-only state)
     let api_routes = Router::new()
@@ -66,6 +93,7 @@ async fn main() {
         .route("/daily-status/submit", post(api::daily_status::submit_day))
         .with_state(pool.clone())
         .merge(notification_routes)
+        .merge(meeting_routes)
         .layer(from_fn_with_state(auth_state, middleware::auth::auth_middleware));
 
     let app = Router::new()

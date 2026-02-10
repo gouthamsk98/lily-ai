@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Web framework
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.7", features = ["macros", "multipart"] }
 axum-extra = { version = "0.9", features = ["typed-header"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.4"
@@ -25,6 +25,8 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 # AWS SDK
 aws-config = "1"
 aws-sdk-sns = "1"
+aws-sdk-s3 = "1"
+aws-sdk-transcribe = "1"
 
 # Utils
 uuid = { version = "1", features = ["v4", "serde"] }

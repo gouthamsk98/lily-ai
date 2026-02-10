@@ -17,17 +17,19 @@ import com.lilyai.app.ui.screens.analytics.AnalyticsScreen
 import com.lilyai.app.ui.screens.dashboard.DashboardScreen
 import com.lilyai.app.ui.screens.history.HistoryScreen
 import com.lilyai.app.ui.screens.login.LoginScreen
+import com.lilyai.app.ui.screens.meetings.MeetingNotesScreen
 
 sealed class Screen(val route: String, val label: String) {
     data object Login : Screen("login", "Login")
     data object Dashboard : Screen("dashboard", "Dashboard")
     data object AddExpense : Screen("add_expense", "Add")
     data object History : Screen("history", "History")
+    data object Meetings : Screen("meetings", "Meetings")
     data object Analytics : Screen("analytics", "Analytics")
 }
 
 private val bottomNavItems = listOf(
-    Screen.Dashboard, Screen.AddExpense, Screen.History, Screen.Analytics
+    Screen.Dashboard, Screen.AddExpense, Screen.History, Screen.Meetings, Screen.Analytics
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +53,7 @@ fun NavGraph() {
                                         Screen.Dashboard -> Icons.Default.Home
                                         Screen.AddExpense -> Icons.Default.Add
                                         Screen.History -> Icons.Default.List
+                                        Screen.Meetings -> Icons.Default.Mic
                                         Screen.Analytics -> Icons.Default.Info
                                         else -> Icons.Default.Home
                                     },
@@ -91,6 +94,7 @@ fun NavGraph() {
                 AddExpenseScreen(onExpenseAdded = { navController.popBackStack() })
             }
             composable(Screen.History.route) { HistoryScreen() }
+            composable(Screen.Meetings.route) { MeetingNotesScreen() }
             composable(Screen.Analytics.route) { AnalyticsScreen() }
         }
     }

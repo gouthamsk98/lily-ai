@@ -6,11 +6,14 @@ import androidx.room.Room
 import com.lilyai.app.BuildConfig
 import com.lilyai.app.data.local.AppDatabase
 import com.lilyai.app.data.local.ExpenseDao
+import com.lilyai.app.data.local.MeetingNoteDao
 import com.lilyai.app.data.remote.ApiService
 import com.lilyai.app.data.repository.AuthRepositoryImpl
 import com.lilyai.app.data.repository.ExpenseRepositoryImpl
+import com.lilyai.app.data.repository.MeetingNoteRepositoryImpl
 import com.lilyai.app.domain.repository.AuthRepository
 import com.lilyai.app.domain.repository.ExpenseRepository
+import com.lilyai.app.domain.repository.MeetingNoteRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -67,11 +70,14 @@ object AppModule {
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "budget_tracker_db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
     fun provideExpenseDao(db: AppDatabase): ExpenseDao = db.expenseDao()
+
+    @Provides
+    fun provideMeetingNoteDao(db: AppDatabase): MeetingNoteDao = db.meetingNoteDao()
 
     @Provides
     @Singleton
@@ -82,4 +88,9 @@ object AppModule {
     @Singleton
     fun provideExpenseRepository(apiService: ApiService, dao: ExpenseDao): ExpenseRepository =
         ExpenseRepositoryImpl(apiService, dao)
+
+    @Provides
+    @Singleton
+    fun provideMeetingNoteRepository(apiService: ApiService, dao: MeetingNoteDao): MeetingNoteRepository =
+        MeetingNoteRepositoryImpl(apiService, dao)
 }

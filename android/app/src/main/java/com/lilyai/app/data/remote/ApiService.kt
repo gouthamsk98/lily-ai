@@ -1,6 +1,7 @@
 package com.lilyai.app.data.remote
 
 import com.lilyai.app.data.remote.dto.*
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
@@ -38,4 +39,26 @@ interface ApiService {
 
     @POST("notifications/register")
     suspend fun registerDevice(@Body request: Map<String, String>)
+
+    @POST("meeting-notes")
+    suspend fun createMeetingNote(@Body request: CreateMeetingNoteRequest): MeetingNoteResponse
+
+    @GET("meeting-notes")
+    suspend fun getMeetingNotes(): List<MeetingNoteResponse>
+
+    @GET("meeting-notes/{id}")
+    suspend fun getMeetingNote(@Path("id") id: String): MeetingNoteResponse
+
+    @DELETE("meeting-notes/{id}")
+    suspend fun deleteMeetingNote(@Path("id") id: String)
+
+    @Multipart
+    @POST("meeting-notes/{id}/upload")
+    suspend fun uploadMeetingAudio(
+        @Path("id") id: String,
+        @Part audio: MultipartBody.Part,
+    ): MeetingNoteResponse
+
+    @GET("meeting-notes/{id}/transcription")
+    suspend fun checkTranscription(@Path("id") id: String): MeetingNoteResponse
 }

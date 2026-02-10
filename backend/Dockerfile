@@ -8,8 +8,8 @@ RUN touch src/main.rs && cargo build --release
 
 FROM debian:trixie-slim
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/budget_tracker_backend /usr/local/bin/
+COPY --from=builder /app/target/release/lily_ai_backend /usr/local/bin/
 COPY --from=builder /app/migrations /app/migrations
 WORKDIR /app
 EXPOSE 8080
-CMD ["budget_tracker_backend"]
+CMD ["lily_ai_backend"]

@@ -9,6 +9,7 @@ pub struct Config {
     pub cognito_region: String,
     pub cognito_app_client_id: String,
     pub sns_platform_application_arn: Option<String>,
+    pub meeting_audio_s3_bucket: Option<String>,
 }
 
 impl Config {
@@ -29,6 +30,7 @@ impl Config {
             cognito_app_client_id: std::env::var("COGNITO_APP_CLIENT_ID")
                 .expect("COGNITO_APP_CLIENT_ID must be set"),
             sns_platform_application_arn: std::env::var("SNS_PLATFORM_APPLICATION_ARN").ok(),
+            meeting_audio_s3_bucket: std::env::var("MEETING_AUDIO_S3_BUCKET").ok(),
         })
     }
 
