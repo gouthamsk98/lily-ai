@@ -58,6 +58,24 @@ lily-ai/
 └── docs/            # Architecture & API documentation
 ```
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" width="180" alt="Dashboard" />
+  <img src="docs/screenshots/add_expense.png" width="180" alt="Add Expense" />
+  <img src="docs/screenshots/history.png" width="180" alt="Expense History" />
+  <img src="docs/screenshots/meetings.png" width="180" alt="Meeting Notes" />
+  <img src="docs/screenshots/analytics.png" width="180" alt="Analytics" />
+</p>
+
+| Screen | Description |
+|--------|-------------|
+| **Dashboard** | Daily/weekly/monthly expense summary, budget progress, recent meeting notes |
+| **Add Expense** | Quick expense entry with category, date, and notes |
+| **History** | Full expense history with delete support |
+| **Meetings** | Audio recording, transcription, and photo attachments |
+| **Analytics** | Spending breakdown by category with daily/weekly/monthly views |
+
 ## Quick Start
 
 ### Prerequisites
