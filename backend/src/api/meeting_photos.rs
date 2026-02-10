@@ -66,12 +66,13 @@ pub async fn upload_photo(
     let ext = if content_type.contains("png") { "png" } else { "jpg" };
     let photo_id = Uuid::new_v4();
     let s3_key = format!("photos/{}/{}/{}.{}", user.id, meeting_id, photo_id, ext);
-    let photo_url = format!(
-        "https://{}.s3.{}.amazonaws.com/{}",
-        service.bucket(),
-        service.region(),
-        s3_key
-    );
+
+    // Generate presigned URL for access
+    let photo_url = service.presign_url(&s3_key).await
+        .unwrap_or_else(|_| format!(
+            "https://{}.s3.{}.amazonaws.com/{}",
+            service.bucket(), service.region(), s3_key
+        ));
 
     // Upload to S3
     let s3_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
@@ -99,7 +100,7 @@ pub async fn upload_photo(
 }
 
 pub async fn list_photos(
-    State((pool, _)): State<(PgPool, Option<MeetingService>)>,
+    State((pool, meeting_service)): State<(PgPool, Option<MeetingService>)>,
     Extension(AuthenticatedUser(user)): Extension<AuthenticatedUser>,
     Path(meeting_id): Path<Uuid>,
 ) -> Result<Json<Vec<MeetingNotePhoto>>, AppError> {
@@ -108,7 +109,17 @@ pub async fn list_photos(
         .await?
         .ok_or_else(|| AppError::NotFound("Meeting note not found".into()))?;
 
-    let photos = meeting_photo_repo::find_by_meeting(&pool, meeting_id, user.id).await?;
+    let mut photos = meeting_photo_repo::find_by_meeting(&pool, meeting_id, user.id).await?;
+
+    // Replace photo_url with presigned URLs
+    if let Some(service) = &meeting_service {
+        for photo in photos.iter_mut() {
+            if let Ok(url) = service.presign_url(&photo.s3_key).await {
+                photo.photo_url = url;
+            }
+        }
+    }
+
     Ok(Json(photos))
 }
 

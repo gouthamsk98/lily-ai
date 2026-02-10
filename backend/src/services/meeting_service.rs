@@ -147,6 +147,22 @@ impl MeetingService {
     pub fn region(&self) -> &str {
         &self.region
     }
+
+    pub async fn presign_url(&self, s3_key: &str) -> Result<String, AppError> {
+        use aws_sdk_s3::presigning::PresigningConfig;
+        use std::time::Duration;
+
+        let presigned = self.s3_client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(s3_key)
+            .presigned(PresigningConfig::expires_in(Duration::from_secs(3600))
+                .map_err(|e| AppError::Internal(format!("Presign config error: {}", e)))?)
+            .await
+            .map_err(|e| AppError::Internal(format!("Presign error: {}", e)))?;
+
+        Ok(presigned.uri().to_string())
+    }
 }
 
 fn extract_transcript(json_str: &str) -> String {

@@ -279,22 +279,9 @@ private fun MeetingDetailSheet(
     val context = LocalContext.current
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showPhotoDeleteConfirm by remember { mutableStateOf<String?>(null) }
+    var pendingCameraFile by remember { mutableStateOf<File?>(null) }
 
-    // Photo picker
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            val inputStream = context.contentResolver.openInputStream(it)
-            val tempFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
-            inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
-            if (tempFile.exists() && tempFile.length() > 0) {
-                onAddPhoto(tempFile)
-            }
-        }
-    }
-
-    // Camera capture
+    // Camera capture (must be declared before permission launcher that references it)
     val cameraUri = remember { mutableStateOf<Uri?>(null) }
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
@@ -307,6 +294,33 @@ private fun MeetingDetailSheet(
                 if (tempFile.exists() && tempFile.length() > 0) {
                     onAddPhoto(tempFile)
                 }
+            }
+        }
+    }
+
+    // Camera permission
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted && pendingCameraFile != null) {
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context, "${context.packageName}.fileprovider", pendingCameraFile!!
+            )
+            cameraUri.value = uri
+            cameraLauncher.launch(uri)
+        }
+    }
+
+    // Photo picker
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            val tempFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+            inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+            if (tempFile.exists() && tempFile.length() > 0) {
+                onAddPhoto(tempFile)
             }
         }
     }
@@ -418,11 +432,19 @@ private fun MeetingDetailSheet(
                 }
                 IconButton(onClick = {
                     val photoFile = File(context.cacheDir, "capture_${System.currentTimeMillis()}.jpg")
-                    val uri = androidx.core.content.FileProvider.getUriForFile(
-                        context, "${context.packageName}.fileprovider", photoFile
-                    )
-                    cameraUri.value = uri
-                    cameraLauncher.launch(uri)
+                    pendingCameraFile = photoFile
+                    val hasCamPerm = ContextCompat.checkSelfPermission(
+                        context, android.Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (hasCamPerm) {
+                        val uri = androidx.core.content.FileProvider.getUriForFile(
+                            context, "${context.packageName}.fileprovider", photoFile
+                        )
+                        cameraUri.value = uri
+                        cameraLauncher.launch(uri)
+                    } else {
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    }
                 }) {
                     Icon(Icons.Default.CameraAlt, contentDescription = "Take photo")
                 }
