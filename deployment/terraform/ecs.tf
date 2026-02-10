@@ -59,6 +59,32 @@ resource "aws_iam_role_policy" "ecs_task_sns" {
   })
 }
 
+resource "aws_iam_role_policy" "ecs_task_meeting_notes" {
+  name = "MeetingNotesAccess"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"]
+        Resource = "arn:aws:s3:::lily-ai-meeting-audio/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["transcribe:StartTranscriptionJob", "transcribe:GetTranscriptionJob"]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["translate:TranslateText"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.project_name}-backend"
   retention_in_days = 14
