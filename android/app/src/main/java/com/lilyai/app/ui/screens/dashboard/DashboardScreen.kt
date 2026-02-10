@@ -22,7 +22,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US)
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
     Column(
         modifier = Modifier

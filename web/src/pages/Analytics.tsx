@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
                 {summary.by_category.map((cat) => (
                   <tr key={cat.category} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: 8, textTransform: 'capitalize' }}>{cat.category}</td>
-                    <td style={{ padding: 8, textAlign: 'right', fontWeight: 600 }}>${parseFloat(cat.total).toFixed(2)}</td>
+                    <td style={{ padding: 8, textAlign: 'right', fontWeight: 600 }}>₹{parseFloat(cat.total).toFixed(2)}</td>
                     <td style={{ padding: 8, textAlign: 'right', color: '#6b7280' }}>{cat.count}</td>
                   </tr>
                 ))}

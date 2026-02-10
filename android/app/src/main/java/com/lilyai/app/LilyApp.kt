@@ -27,6 +27,7 @@ class LilyApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        com.lilyai.app.ui.screens.login.TokenStore.init(this)
         configureAmplify()
         createNotificationChannel()
         scheduleDailyReminder()

@@ -1,6 +1,7 @@
 package com.lilyai.app.di
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Room
 import com.lilyai.app.BuildConfig
 import com.lilyai.app.data.local.AppDatabase
@@ -28,14 +29,25 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        }
         return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
+            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
-                // Token will be added by AuthInterceptor
-                chain.proceed(chain.request())
+                val token = com.lilyai.app.ui.screens.login.TokenStore.getIdToken()
+                Log.d("AuthInterceptor", "Token present: ${token != null}")
+                val request = if (token != null) {
+                    chain.request().newBuilder()
+                        .addHeader("Authorization", "Bearer $token")
+                        .build()
+                } else {
+                    chain.request()
+                }
+                chain.proceed(request)
             }
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build()
     }
 

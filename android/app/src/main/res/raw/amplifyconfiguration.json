@@ -21,7 +21,11 @@
               "AppClientId": "42q1k1ra7mofct3r3qeltgq7u1",
               "SignInRedirectURI": "lilyai://callback",
               "SignOutRedirectURI": "lilyai://callback",
-              "Scopes": ["openid", "email", "profile"]
+              "Scopes": ["openid", "email", "profile"],
+              "SignInURI": "https://budget-tracker.auth.ap-south-1.amazoncognito.com/oauth2/authorize",
+              "TokenURI": "https://budget-tracker.auth.ap-south-1.amazoncognito.com/oauth2/token",
+              "SignOutURI": "https://budget-tracker.auth.ap-south-1.amazoncognito.com/logout",
+              "ResponseType": "code"
             },
             "authenticationFlowType": "USER_SRP_AUTH",
             "socialProviders": ["GOOGLE"],

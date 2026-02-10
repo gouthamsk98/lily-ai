@@ -18,7 +18,7 @@ import java.util.Locale
 @Composable
 fun AnalyticsScreen(viewModel: AnalyticsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
-    val fmt = NumberFormat.getCurrencyInstance(Locale.US)
+    val fmt = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
     Column(
         modifier = Modifier

@@ -16,7 +16,7 @@ import java.util.Locale
 
 @Composable
 fun ExpenseCard(expense: Expense, onDelete: (() -> Unit)? = null) {
-    val fmt = NumberFormat.getCurrencyInstance(Locale.US)
+    val fmt = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
     val categoryColor = when (expense.category.name.lowercase()) {
         "food" -> FoodColor
         "entertainment" -> EntertainmentColor

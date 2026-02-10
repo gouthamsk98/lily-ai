@@ -17,7 +17,7 @@ import java.util.Locale
 
 @Composable
 fun SummaryChart(categories: List<CategorySummary>) {
-    val fmt = NumberFormat.getCurrencyInstance(Locale.US)
+    val fmt = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
     val maxTotal = categories.maxOfOrNull { it.total } ?: 1.0
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

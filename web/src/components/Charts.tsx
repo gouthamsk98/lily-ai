@@ -33,7 +33,7 @@ export default function Charts({ data }: Props) {
             <Cell key={index} fill={entry.color} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: any) => `$${Number(value ?? 0).toFixed(2)}`} />
+        <Tooltip formatter={(value: any) => `₹${Number(value ?? 0).toFixed(2)}`} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>
