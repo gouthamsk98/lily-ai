@@ -1,5 +1,5 @@
 [package]
-name = "budget_tracker_backend"
+name = "lily_ai_backend"
 version = "0.1.0"
 edition = "2021"
 

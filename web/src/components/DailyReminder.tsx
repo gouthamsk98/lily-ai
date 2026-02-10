@@ -36,7 +36,7 @@ export default function DailyReminder({ onDismiss, onQuickAdd }: Props) {
         <button
           onClick={onQuickAdd}
           style={{
-            background: '#3b82f6', color: 'white', border: 'none',
+            background: '#7c3aed', color: 'white', border: 'none',
             padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13,
           }}
         >

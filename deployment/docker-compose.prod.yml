@@ -13,7 +13,7 @@ services:
       COGNITO_REGION: ${COGNITO_REGION}
       COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID}
       SNS_PLATFORM_APPLICATION_ARN: ${SNS_PLATFORM_APPLICATION_ARN}
-      RUST_LOG: budget_tracker_backend=info,tower_http=info
+      RUST_LOG: lily-ai_backend=info,tower_http=info
     restart: unless-stopped
 
   web:

@@ -6,22 +6,22 @@ export default function Login() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+      background: 'linear-gradient(135deg, #4a1d96 0%, #7c3aed 50%, #a78bfa 100%)',
     }}>
       <div style={{
         background: 'white', borderRadius: 16, padding: 48, textAlign: 'center',
         boxShadow: '0 25px 50px rgba(0,0,0,0.25)', maxWidth: 400, width: '100%',
       }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Budget Tracker</h1>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🌸</div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Lily AI</h1>
         <p style={{ color: '#6b7280', marginBottom: 32 }}>
-          Track your daily expenses and stay on top of your finances.
+          Your Personal AI Assistant
         </p>
         <button
           onClick={login}
           disabled={isLoading}
           style={{
-            background: '#4285f4', color: 'white', border: 'none',
+            background: '#7c3aed', color: 'white', border: 'none',
             padding: '14px 32px', borderRadius: 8, fontSize: 16,
             fontWeight: 600, cursor: 'pointer', width: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

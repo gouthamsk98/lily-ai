@@ -33,7 +33,12 @@ output "ecr_web_repo" {
   value       = aws_ecr_repository.web.repository_url
 }
 
-output "sns_platform_arn" {
-  description = "SNS Platform Application ARN (configure after Firebase setup)"
-  value       = ""
+output "cloudfront_domain" {
+  description = "CloudFront distribution domain (HTTPS)"
+  value       = aws_cloudfront_distribution.main.domain_name
+}
+
+output "cloudfront_url" {
+  description = "CloudFront HTTPS URL"
+  value       = "https://${aws_cloudfront_distribution.main.domain_name}"
 }

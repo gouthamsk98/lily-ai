@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: budget_tracker
+      POSTGRES_DB: lily-ai
       POSTGRES_USER: budget_user
       POSTGRES_PASSWORD: budget_pass
     ports:
@@ -12,7 +12,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U budget_user -d budget_tracker"]
+      test: ["CMD-SHELL", "pg_isready -U budget_user -d lily-ai"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,13 +24,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgres://budget_user:budget_pass@db:5432/budget_tracker
+      DATABASE_URL: postgres://budget_user:budget_pass@db:5432/lily-ai
       HOST: 0.0.0.0
       PORT: 8080
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
       COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
       COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID}
-      RUST_LOG: budget_tracker_backend=debug,tower_http=debug
+      RUST_LOG: lily-ai_backend=debug,tower_http=debug
     depends_on:
       db:
         condition: service_healthy

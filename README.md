@@ -1,4 +1,4 @@
-# Budget Tracker
+# Lily AI
 
 A full-stack personal daily expense tracking system with Android, Web, and Backend components. Built with clean architecture principles and designed to evolve into a personal assistant system.
 
@@ -17,7 +17,7 @@ A full-stack personal daily expense tracking system with Android, Web, and Backe
 ## Project Structure
 
 ```
-budget_tracker/
+lily-ai/
 ├── backend/         # Rust Axum REST API
 ├── web/             # React Vite SPA
 ├── android/         # Kotlin Jetpack Compose app
@@ -39,7 +39,7 @@ budget_tracker/
 
 ```bash
 git clone <repo-url>
-cd budget_tracker
+cd lily-ai
 ```
 
 ### 2. Start Database (Local Development)
@@ -107,7 +107,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
 
 ### Backend (.env)
 ```
-DATABASE_URL=postgres://user:pass@localhost:5432/budget_tracker
+DATABASE_URL=postgres://user:pass@localhost:5432/lily-ai
 COGNITO_USER_POOL_ID=us-east-1_XXXXX
 COGNITO_REGION=us-east-1
 COGNITO_APP_CLIENT_ID=your_client_id

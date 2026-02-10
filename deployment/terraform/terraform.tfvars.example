@@ -1,0 +1,6 @@
+aws_region           = "ap-south-1"
+db_password          = "YOUR_SECURE_DB_PASSWORD"
+google_client_id     = "YOUR_GOOGLE_OAUTH_CLIENT_ID"
+google_client_secret = "YOUR_GOOGLE_OAUTH_CLIENT_SECRET"
+backend_image        = "YOUR_AWS_ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/budget-tracker-backend:latest"
+web_image            = "YOUR_AWS_ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/budget-tracker-web:latest"

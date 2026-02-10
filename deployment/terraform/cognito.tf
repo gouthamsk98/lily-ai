@@ -63,13 +63,13 @@ resource "aws_cognito_user_pool_client" "main" {
 
   callback_urls = [
     "http://localhost:3000",
-    "https://${aws_lb.main.dns_name}",
-    "budgettracker://callback",
+    "https://${aws_cloudfront_distribution.main.domain_name}",
+    "lilyai://callback",
   ]
 
   logout_urls = [
     "http://localhost:3000",
-    "https://${aws_lb.main.dns_name}",
+    "https://${aws_cloudfront_distribution.main.domain_name}",
   ]
 
   generate_secret = false

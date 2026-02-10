@@ -2,7 +2,7 @@
 
 ## Overview
 
-Budget Tracker follows **clean architecture** principles across all three components (backend, web, Android). Each component has clearly separated layers with dependencies flowing inward.
+Lily AI follows **clean architecture** principles across all three components (backend, web, Android). Each component has clearly separated layers with dependencies flowing inward.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -90,7 +90,7 @@ src/
 ## Android Architecture (Kotlin)
 
 ```
-com.budgettracker/
+com.lilyai/
 ├── domain/              # Layer 1: Domain
 │   ├── model/           # Data classes (Expense, User, Category)
 │   └── repository/      # Repository interfaces

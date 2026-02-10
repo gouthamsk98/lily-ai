@@ -14,13 +14,13 @@ export default function Layout() {
   const location = useLocation();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
+    <div style={{ minHeight: '100vh', background: '#faf5ff' }}>
       <nav style={{
-        background: '#1e293b', color: 'white', padding: '0 24px',
+        background: '#4a1d96', color: 'white', padding: '0 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56
       }}>
         <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: 20 }}>
-          💰 Budget Tracker
+          🌸 Lily AI
         </Link>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           {navItems.map(({ to, label, icon: Icon }) => (

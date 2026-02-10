@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "BudgetTracker"
+rootProject.name = "LilyAI"
 include(":app")

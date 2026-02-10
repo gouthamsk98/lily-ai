@@ -1,59 +1,72 @@
-# Dependencies
-node_modules/
-target/
-.gradle/
-build/
-*.class
+# ========================
+# Lily AI - .gitignore
+# ========================
 
-# Environment files
+# -------- Environment & Secrets --------
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
 
-# IDE
+# -------- IDE / Editor --------
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
+*.iml
 
-# OS
+# -------- OS --------
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Rust
+# -------- Rust / Backend --------
+backend/target/
 target/
 **/*.rs.bk
 
-# Node
+# -------- Node / Web --------
 node_modules/
 dist/
 .cache/
+.vite/
+*.tsbuildinfo
 
-# Android
+# -------- Android --------
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/local.properties
 *.apk
 *.aab
 *.dex
 *.ap_
-local.properties
-*.iml
-.gradle/
-build/
-captures/
-.externalNativeBuild/
-.cxx/
+*.class
 
-# Terraform
+# -------- Terraform --------
 .terraform/
 *.tfstate
 *.tfstate.backup
 *.tfvars
 !*.tfvars.example
+**/.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# Docker
+# -------- Docker --------
 *.log
 
-# Compiled
+# -------- Compiled / Binary --------
 *.o
 *.so
 *.dylib
+*.exe

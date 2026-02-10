@@ -6,17 +6,17 @@ plugins {
 }
 
 android {
-    namespace = "com.budgettracker"
+    namespace = "com.lilyai.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.budgettracker"
+        applicationId = "com.lilyai.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://d3j9fq1x4m4mcw.cloudfront.net/api\"")
     }
 
     buildFeatures {
@@ -25,7 +25,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
 
     compileOptions {
@@ -40,10 +40,11 @@ android {
 
 dependencies {
     // Compose
-    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
+    val composeBom = platform("androidx.compose:compose-bom:2024.02.02")
     implementation(composeBom)
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.animation:animation")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.7.6")
     debugImplementation("androidx.compose.ui:ui-tooling")
@@ -70,6 +71,7 @@ dependencies {
     // AWS Amplify
     implementation("com.amplifyframework:core:2.14.5")
     implementation("com.amplifyframework:aws-auth-cognito:2.14.5")
+    implementation("com.amplifyframework:core-kotlin:2.14.5")
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")

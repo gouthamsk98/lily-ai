@@ -56,9 +56,9 @@ aws ecr get-login-password --region $AWS_REGION | \
 
 # Build and push backend
 cd backend
-docker build -t budget-tracker-backend .
-docker tag budget-tracker-backend:latest $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/budget-tracker-backend:latest
-docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/budget-tracker-backend:latest
+docker build -t lily-ai-backend .
+docker tag lily-ai-backend:latest $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/lily-ai-backend:latest
+docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/lily-ai-backend:latest
 
 # Build web with production environment
 cd ../web
@@ -71,9 +71,9 @@ VITE_COGNITO_DOMAIN=<from-terraform-output>
 VITE_REDIRECT_SIGN_IN=http://<alb-dns-name>
 VITE_REDIRECT_SIGN_OUT=http://<alb-dns-name>
 EOF
-docker build -t budget-tracker-web .
-docker tag budget-tracker-web:latest $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/budget-tracker-web:latest
-docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/budget-tracker-web:latest
+docker build -t lily-ai-web .
+docker tag lily-ai-web:latest $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/lily-ai-web:latest
+docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/lily-ai-web:latest
 ```
 
 ## Step 4: Update Terraform with Real Images
@@ -82,8 +82,8 @@ docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/budget-tracker-web:la
 cd deployment/terraform
 
 # Update terraform.tfvars with real ECR image URIs
-# backend_image = "<account>.dkr.ecr.<region>.amazonaws.com/budget-tracker-backend:latest"
-# web_image = "<account>.dkr.ecr.<region>.amazonaws.com/budget-tracker-web:latest"
+# backend_image = "<account>.dkr.ecr.<region>.amazonaws.com/lily-ai-backend:latest"
+# web_image = "<account>.dkr.ecr.<region>.amazonaws.com/lily-ai-web:latest"
 
 terraform apply
 ```
@@ -92,8 +92,8 @@ terraform apply
 
 ```bash
 # Check ECS services
-aws ecs describe-services --cluster budget-tracker-cluster \
-  --services budget-tracker-backend budget-tracker-web \
+aws ecs describe-services --cluster lily-ai-cluster \
+  --services lily-ai-backend lily-ai-web \
   --query 'services[].{name:serviceName,status:status,running:runningCount}' \
   --no-cli-pager
 
@@ -132,7 +132,7 @@ cd deployment/scripts
 
 ## Monitoring
 
-- **Logs**: CloudWatch Log Groups `/ecs/budget-tracker-backend` and `/ecs/budget-tracker-web`
+- **Logs**: CloudWatch Log Groups `/ecs/lily-ai-backend` and `/ecs/lily-ai-web`
 - **Metrics**: ECS service metrics in CloudWatch
 - **Database**: RDS Performance Insights (enable in console)
 
