@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lilyai.app.MainActivity
-import com.lilyai.app.domain.repository.AuthRepository
+import com.lilyai.app.data.remote.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +22,7 @@ data class LoginState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val apiService: ApiService,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -51,12 +51,63 @@ class LoginViewModel @Inject constructor(
             // Check stored tokens
             val token = TokenStore.getIdToken()
             if (token != null) {
-                Log.i("LoginViewModel", "Found stored token")
-                _state.value = LoginState(isLoading = false, isAuthenticated = true)
+                Log.i("LoginViewModel", "Found stored token, validating...")
+                // Validate token by calling API
+                try {
+                    apiService.getMe() // throws on 401
+                    Log.i("LoginViewModel", "Token valid")
+                    _state.value = LoginState(isLoading = false, isAuthenticated = true)
+                } catch (e: Exception) {
+                    Log.w("LoginViewModel", "Token invalid, attempting refresh...")
+                    val refreshed = tryRefreshToken()
+                    if (refreshed) {
+                        _state.value = LoginState(isLoading = false, isAuthenticated = true)
+                    } else {
+                        Log.i("LoginViewModel", "Refresh failed, clearing tokens")
+                        TokenStore.clear()
+                        _state.value = LoginState(isLoading = false, isAuthenticated = false)
+                    }
+                }
             } else {
                 Log.i("LoginViewModel", "No stored token")
                 _state.value = LoginState(isLoading = false, isAuthenticated = false)
             }
+        }
+    }
+
+    private suspend fun tryRefreshToken(): Boolean {
+        val refreshToken = TokenStore.getRefreshToken() ?: return false
+        return try {
+            val tokenUrl = "https://$COGNITO_DOMAIN/oauth2/token"
+            val client = okhttp3.OkHttpClient()
+            val body = okhttp3.FormBody.Builder()
+                .add("grant_type", "refresh_token")
+                .add("refresh_token", refreshToken)
+                .add("client_id", CLIENT_ID)
+                .build()
+            val request = okhttp3.Request.Builder()
+                .url(tokenUrl)
+                .post(body)
+                .build()
+            val response = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                client.newCall(request).execute()
+            }
+            val responseBody = response.body?.string()
+            if (response.isSuccessful && responseBody != null) {
+                val json = org.json.JSONObject(responseBody)
+                val idToken = json.getString("id_token")
+                val accessToken = json.getString("access_token")
+                // Refresh token is not returned on refresh, keep the old one
+                TokenStore.saveTokens(idToken, accessToken, refreshToken)
+                Log.i("LoginViewModel", "Token refreshed successfully")
+                true
+            } else {
+                Log.e("LoginViewModel", "Token refresh failed: $responseBody")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("LoginViewModel", "Token refresh error", e)
+            false
         }
     }
 

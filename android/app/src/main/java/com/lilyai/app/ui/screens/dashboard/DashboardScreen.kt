@@ -24,6 +24,11 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsState()
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
+    // Refresh data every time this screen becomes visible
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
