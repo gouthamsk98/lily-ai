@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lilyai.app.domain.model.DailyStatus
 import com.lilyai.app.domain.model.ExpenseSummary
+import com.lilyai.app.domain.model.MeetingNote
 import com.lilyai.app.domain.repository.ExpenseRepository
+import com.lilyai.app.domain.repository.MeetingNoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,12 +18,14 @@ data class DashboardState(
     val weeklySummary: ExpenseSummary? = null,
     val monthlySummary: ExpenseSummary? = null,
     val dailyStatus: DailyStatus? = null,
+    val recentMeetings: List<MeetingNote> = emptyList(),
     val isLoading: Boolean = true,
 )
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
+    private val meetingNoteRepository: MeetingNoteRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
@@ -37,7 +41,8 @@ class DashboardViewModel @Inject constructor(
                 val weekly = expenseRepository.getWeeklySummary()
                 val monthly = expenseRepository.getMonthlySummary()
                 val status = expenseRepository.getDailyStatus()
-                _state.value = DashboardState(daily, weekly, monthly, status, false)
+                val meetings = try { meetingNoteRepository.getMeetingNotes().take(3) } catch (_: Exception) { emptyList() }
+                _state.value = DashboardState(daily, weekly, monthly, status, meetings, false)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false)
             }

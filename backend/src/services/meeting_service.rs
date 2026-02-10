@@ -143,6 +143,10 @@ impl MeetingService {
     pub fn bucket(&self) -> &str {
         &self.bucket
     }
+
+    pub fn region(&self) -> &str {
+        &self.region
+    }
 }
 
 fn extract_transcript(json_str: &str) -> String {

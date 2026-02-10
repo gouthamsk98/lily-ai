@@ -1,6 +1,7 @@
 package com.lilyai.app.domain.repository
 
 import com.lilyai.app.domain.model.MeetingNote
+import com.lilyai.app.domain.model.MeetingPhoto
 import java.io.File
 
 interface MeetingNoteRepository {
@@ -11,4 +12,7 @@ interface MeetingNoteRepository {
     suspend fun uploadAudio(id: String, audioFile: File): MeetingNote
     suspend fun checkTranscription(id: String): MeetingNote
     suspend fun getPendingUploads(): List<MeetingNote>
+    suspend fun uploadPhoto(meetingId: String, photoFile: File): MeetingPhoto
+    suspend fun getPhotos(meetingId: String): List<MeetingPhoto>
+    suspend fun deletePhoto(meetingId: String, photoId: String)
 }

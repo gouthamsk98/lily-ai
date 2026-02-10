@@ -30,7 +30,7 @@ pub async fn list_meeting_notes(
 }
 
 pub async fn get_meeting_note(
-    State(pool): State<PgPool>,
+    State((pool, _meeting_service)): State<(PgPool, Option<MeetingService>)>,
     Extension(AuthenticatedUser(user)): Extension<AuthenticatedUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<MeetingNote>, AppError> {

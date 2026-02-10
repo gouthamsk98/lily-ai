@@ -16,6 +16,11 @@ import com.lilyai.app.ui.components.ExpenseCard
 fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
 
+    // Refresh data every time this screen becomes visible
+    LaunchedEffect(Unit) {
+        viewModel.loadExpenses()
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Expense History", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))

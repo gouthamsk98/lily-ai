@@ -2,6 +2,7 @@ package com.lilyai.app.data.remote
 
 import com.lilyai.app.data.remote.dto.*
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
@@ -20,7 +21,7 @@ interface ApiService {
     ): List<ExpenseResponse>
 
     @DELETE("expenses/{id}")
-    suspend fun deleteExpense(@Path("id") id: String)
+    suspend fun deleteExpense(@Path("id") id: String): Response<Unit>
 
     @GET("analytics/daily")
     suspend fun getDailySummary(@Query("date") date: String? = null): ExpenseSummaryResponse
@@ -50,7 +51,7 @@ interface ApiService {
     suspend fun getMeetingNote(@Path("id") id: String): MeetingNoteResponse
 
     @DELETE("meeting-notes/{id}")
-    suspend fun deleteMeetingNote(@Path("id") id: String)
+    suspend fun deleteMeetingNote(@Path("id") id: String): Response<Unit>
 
     @Multipart
     @POST("meeting-notes/{id}/upload")
@@ -61,4 +62,20 @@ interface ApiService {
 
     @GET("meeting-notes/{id}/transcription")
     suspend fun checkTranscription(@Path("id") id: String): MeetingNoteResponse
+
+    @Multipart
+    @POST("meeting-notes/{id}/photos")
+    suspend fun uploadMeetingPhoto(
+        @Path("id") id: String,
+        @Part photo: MultipartBody.Part,
+    ): MeetingPhotoResponse
+
+    @GET("meeting-notes/{id}/photos")
+    suspend fun getMeetingPhotos(@Path("id") id: String): List<MeetingPhotoResponse>
+
+    @DELETE("meeting-notes/{meetingId}/photos/{photoId}")
+    suspend fun deleteMeetingPhoto(
+        @Path("meetingId") meetingId: String,
+        @Path("photoId") photoId: String,
+    ): Response<Unit>
 }

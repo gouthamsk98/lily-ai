@@ -3,13 +3,18 @@ package com.lilyai.app.ui.screens.dashboard
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lilyai.app.domain.model.MeetingNote
 import com.lilyai.app.ui.components.DailyReminderBanner
 import com.lilyai.app.ui.components.SummaryChart
 import com.lilyai.app.ui.theme.*
@@ -24,7 +29,6 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsState()
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    // Refresh data every time this screen becomes visible
     LaunchedEffect(Unit) {
         viewModel.refresh()
     }
@@ -69,6 +73,71 @@ fun DashboardScreen(
                     SummaryChart(it.byCategory)
                 }
             }
+
+            // Recent Meeting Notes
+            if (state.recentMeetings.isNotEmpty()) {
+                Spacer(Modifier.height(24.dp))
+                Text("Recent Meeting Notes", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Spacer(Modifier.height(12.dp))
+                state.recentMeetings.forEach { note ->
+                    MeetingNotePreviewCard(note)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MeetingNotePreviewCard(note: MeetingNote) {
+    val date = note.createdAt.take(10)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Mic,
+                contentDescription = null,
+                tint = Primary,
+                modifier = Modifier.size(32.dp),
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(note.meetingTitle, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    buildString {
+                        append(date)
+                        append(" • ")
+                        val m = note.durationSecs / 60
+                        val s = note.durationSecs % 60
+                        append(String.format("%d:%02d", m, s))
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurfaceVariant,
+                )
+                if (note.transcriptText != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        note.transcriptText,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = OnSurfaceVariant,
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            val (badge, badgeColor) = when (note.transcriptionStatus) {
+                "completed" -> "✓" to Primary
+                "transcribing" -> "⏳" to EntertainmentColor
+                "failed" -> "✗" to Error
+                else -> "○" to OnSurfaceVariant
+            }
+            Text(badge, color = badgeColor, fontSize = 16.sp)
         }
     }
 }

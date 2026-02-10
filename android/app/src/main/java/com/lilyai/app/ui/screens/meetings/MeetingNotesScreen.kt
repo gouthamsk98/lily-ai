@@ -2,18 +2,25 @@ package com.lilyai.app.ui.screens.meetings
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,7 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.lilyai.app.domain.model.MeetingNote
+import com.lilyai.app.domain.model.MeetingPhoto
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +40,11 @@ fun MeetingNotesScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadNotes()
+    }
+
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
@@ -45,9 +60,12 @@ fun MeetingNotesScreen(
     state.selectedNote?.let { note ->
         MeetingDetailSheet(
             note = note,
+            isUploadingPhoto = state.isUploadingPhoto,
             onDismiss = { viewModel.clearSelectedNote() },
             onDelete = { viewModel.deleteMeetingNote(note.id) },
             onRefresh = { viewModel.refreshTranscription(note.id) },
+            onAddPhoto = { file -> viewModel.uploadPhoto(note.id, file) },
+            onDeletePhoto = { photoId -> viewModel.deletePhoto(note.id, photoId) },
         )
     }
 
@@ -59,7 +77,6 @@ fun MeetingNotesScreen(
         Text("Meeting Notes", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        // Recording controls
         if (state.isRecording) {
             RecordingCard(
                 durationSecs = state.recordingDurationSecs,
@@ -71,7 +88,6 @@ fun MeetingNotesScreen(
                 onStop = { viewModel.stopRecording() },
             )
         } else {
-            // Start recording button
             Button(
                 onClick = {
                     if (!hasPermission) {
@@ -253,17 +269,53 @@ private fun TranscriptionBadge(status: String) {
 @Composable
 private fun MeetingDetailSheet(
     note: MeetingNote,
+    isUploadingPhoto: Boolean,
     onDismiss: () -> Unit,
     onDelete: () -> Unit,
     onRefresh: () -> Unit,
+    onAddPhoto: (File) -> Unit,
+    onDeletePhoto: (String) -> Unit,
 ) {
+    val context = LocalContext.current
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showPhotoDeleteConfirm by remember { mutableStateOf<String?>(null) }
+
+    // Photo picker
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            val tempFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+            inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+            if (tempFile.exists() && tempFile.length() > 0) {
+                onAddPhoto(tempFile)
+            }
+        }
+    }
+
+    // Camera capture
+    val cameraUri = remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraUri.value?.let { uri ->
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val tempFile = File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+                inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+                if (tempFile.exists() && tempFile.length() > 0) {
+                    onAddPhoto(tempFile)
+                }
+            }
+        }
+    }
 
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Delete Meeting?") },
-            text = { Text("This will permanently delete the recording and transcript.") },
+            text = { Text("This will permanently delete the recording, transcript, and photos.") },
             confirmButton = {
                 TextButton(onClick = { showDeleteConfirm = false; onDelete() }) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -275,10 +327,26 @@ private fun MeetingDetailSheet(
         )
     }
 
+    showPhotoDeleteConfirm?.let { photoId ->
+        AlertDialog(
+            onDismissRequest = { showPhotoDeleteConfirm = null },
+            title = { Text("Delete Photo?") },
+            confirmButton = {
+                TextButton(onClick = { showPhotoDeleteConfirm = null; onDeletePhoto(photoId) }) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPhotoDeleteConfirm = null }) { Text("Cancel") }
+            },
+        )
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .padding(bottom = 32.dp)
         ) {
@@ -299,6 +367,7 @@ private fun MeetingDetailSheet(
             Divider()
             Spacer(Modifier.height(16.dp))
 
+            // Transcript section
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Transcript", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.weight(1f))
@@ -331,6 +400,77 @@ private fun MeetingDetailSheet(
                     Text("Waiting for audio upload...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
+
+            // Photos section
+            Spacer(Modifier.height(16.dp))
+            Divider()
+            Spacer(Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Photos", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Spacer(Modifier.weight(1f))
+                if (isUploadingPhoto) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                IconButton(onClick = { photoPickerLauncher.launch("image/*") }) {
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = "Pick photo")
+                }
+                IconButton(onClick = {
+                    val photoFile = File(context.cacheDir, "capture_${System.currentTimeMillis()}.jpg")
+                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                        context, "${context.packageName}.fileprovider", photoFile
+                    )
+                    cameraUri.value = uri
+                    cameraLauncher.launch(uri)
+                }) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = "Take photo")
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            if (note.photos.isEmpty()) {
+                Text(
+                    "No photos attached. Tap the icons above to add.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(note.photos, key = { it.id }) { photo ->
+                        PhotoThumbnail(
+                            photo = photo,
+                            onDelete = { showPhotoDeleteConfirm = photo.id },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhotoThumbnail(photo: MeetingPhoto, onDelete: () -> Unit) {
+    Box(modifier = Modifier.size(120.dp)) {
+        AsyncImage(
+            model = photo.photoUrl,
+            contentDescription = photo.caption,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop,
+        )
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.align(Alignment.TopEnd).size(28.dp),
+        ) {
+            Icon(
+                Icons.Default.Close,
+                contentDescription = "Delete",
+                tint = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.size(16.dp),
+            )
         }
     }
 }

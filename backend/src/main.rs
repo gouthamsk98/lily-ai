@@ -60,19 +60,15 @@ async fn main() {
 
     // Meeting notes routes (some need meeting_service for S3/Transcribe)
     let meeting_routes = Router::new()
-        .route("/meeting-notes", post(api::meeting_notes::create_meeting_note))
-        .route("/meeting-notes", get(api::meeting_notes::list_meeting_notes))
+        .route("/meeting-notes", post(api::meeting_notes::create_meeting_note).get(api::meeting_notes::list_meeting_notes))
         .with_state(pool.clone())
         .merge(
             Router::new()
-                .route("/meeting-notes/{id}", get(api::meeting_notes::get_meeting_note))
-                .with_state(pool.clone())
-        )
-        .merge(
-            Router::new()
-                .route("/meeting-notes/{id}", delete(api::meeting_notes::delete_meeting_note))
-                .route("/meeting-notes/{id}/upload", post(api::meeting_notes::upload_audio))
-                .route("/meeting-notes/{id}/transcription", get(api::meeting_notes::check_transcription))
+                .route("/meeting-notes/:id", get(api::meeting_notes::get_meeting_note).delete(api::meeting_notes::delete_meeting_note))
+                .route("/meeting-notes/:id/upload", post(api::meeting_notes::upload_audio))
+                .route("/meeting-notes/:id/transcription", get(api::meeting_notes::check_transcription))
+                .route("/meeting-notes/:id/photos", post(api::meeting_photos::upload_photo).get(api::meeting_photos::list_photos))
+                .route("/meeting-notes/:meeting_id/photos/:photo_id", delete(api::meeting_photos::delete_photo))
                 .with_state(meeting_state)
         );
 
@@ -82,9 +78,9 @@ async fn main() {
         .route("/users/profile", put(api::users::update_profile))
         .route("/expenses", post(api::expenses::create_expense))
         .route("/expenses", get(api::expenses::list_expenses))
-        .route("/expenses/{id}", get(api::expenses::get_expense))
-        .route("/expenses/{id}", put(api::expenses::update_expense))
-        .route("/expenses/{id}", delete(api::expenses::delete_expense))
+        .route("/expenses/:id", get(api::expenses::get_expense))
+        .route("/expenses/:id", put(api::expenses::update_expense))
+        .route("/expenses/:id", delete(api::expenses::delete_expense))
         .route("/analytics/daily", get(api::analytics::daily))
         .route("/analytics/weekly", get(api::analytics::weekly))
         .route("/analytics/monthly", get(api::analytics::monthly))

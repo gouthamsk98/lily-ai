@@ -10,4 +10,13 @@ data class MeetingNote(
     val transcriptionStatus: String,
     val createdAt: String,
     val updatedAt: String,
+    val photos: List<MeetingPhoto> = emptyList(),
+)
+
+data class MeetingPhoto(
+    val id: String,
+    val meetingNoteId: String,
+    val photoUrl: String,
+    val caption: String?,
+    val createdAt: String,
 )

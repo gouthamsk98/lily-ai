@@ -5,6 +5,7 @@ import com.lilyai.app.data.local.MeetingNoteEntity
 import com.lilyai.app.data.remote.ApiService
 import com.lilyai.app.data.remote.dto.CreateMeetingNoteRequest
 import com.lilyai.app.domain.model.MeetingNote
+import com.lilyai.app.domain.model.MeetingPhoto
 import com.lilyai.app.domain.repository.MeetingNoteRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -55,7 +56,9 @@ class MeetingNoteRepositoryImpl @Inject constructor(
 
     override suspend fun getMeetingNote(id: String): MeetingNote {
         return try {
-            apiService.getMeetingNote(id).toDomain()
+            val response = apiService.getMeetingNote(id)
+            val photos = try { apiService.getMeetingPhotos(id).map { it.toDomain() } } catch (_: Exception) { emptyList() }
+            response.toDomain(photos)
         } catch (e: Exception) {
             dao.getById(id)?.toDomain() ?: throw e
         }
@@ -85,6 +88,22 @@ class MeetingNoteRepositoryImpl @Inject constructor(
 
     override suspend fun getPendingUploads(): List<MeetingNote> {
         return dao.getPendingUploads().map { it.toDomain() }
+    }
+
+    override suspend fun uploadPhoto(meetingId: String, photoFile: File): MeetingPhoto {
+        val mediaType = "image/jpeg".toMediaTypeOrNull()
+        val requestBody = photoFile.asRequestBody(mediaType)
+        val part = MultipartBody.Part.createFormData("photo", photoFile.name, requestBody)
+        val response = apiService.uploadMeetingPhoto(meetingId, part)
+        return response.toDomain()
+    }
+
+    override suspend fun getPhotos(meetingId: String): List<MeetingPhoto> {
+        return apiService.getMeetingPhotos(meetingId).map { it.toDomain() }
+    }
+
+    override suspend fun deletePhoto(meetingId: String, photoId: String) {
+        apiService.deleteMeetingPhoto(meetingId, photoId)
     }
 
     private fun com.lilyai.app.data.remote.dto.MeetingNoteResponse.toEntity(localPath: String?) =

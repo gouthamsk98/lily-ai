@@ -25,7 +25,7 @@ class HistoryViewModel @Inject constructor(
 
     init { loadExpenses() }
 
-    private fun loadExpenses() {
+    fun loadExpenses() {
         viewModelScope.launch {
             try {
                 val expenses = expenseRepository.getExpenses()
@@ -40,10 +40,11 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 expenseRepository.deleteExpense(id)
-                _state.value = _state.value.copy(
-                    expenses = _state.value.expenses.filter { it.id != id }
-                )
-            } catch (_: Exception) {}
+                // Reload from server to ensure consistency
+                loadExpenses()
+            } catch (e: Exception) {
+                android.util.Log.e("HistoryVM", "Delete failed", e)
+            }
         }
     }
 }

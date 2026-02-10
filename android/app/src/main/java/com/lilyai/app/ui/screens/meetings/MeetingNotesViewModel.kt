@@ -30,6 +30,7 @@ data class MeetingNotesState(
     val recordingDurationSecs: Int = 0,
     val meetingTitle: String = "",
     val error: String? = null,
+    val isUploadingPhoto: Boolean = false,
 )
 
 @HiltViewModel
@@ -71,22 +72,56 @@ class MeetingNotesViewModel @Inject constructor(
             try {
                 val notes = repository.getMeetingNotes()
                 _state.value = _state.value.copy(notes = notes, isLoading = false)
+                // Auto-poll transcription for any notes that are still transcribing
+                pollTranscribingNotes(notes)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.message)
             }
         }
     }
 
-    fun selectNote(note: MeetingNote) {
-        _state.value = _state.value.copy(selectedNote = note)
-        // Check transcription status if transcribing
-        if (note.transcriptionStatus == "transcribing") {
-            viewModelScope.launch {
+    private fun pollTranscribingNotes(notes: List<MeetingNote>) {
+        val transcribing = notes.filter { it.transcriptionStatus == "transcribing" }
+        if (transcribing.isEmpty()) return
+        viewModelScope.launch {
+            for (note in transcribing) {
                 try {
                     val updated = repository.checkTranscription(note.id)
-                    _state.value = _state.value.copy(selectedNote = updated)
+                    if (updated.transcriptionStatus != "transcribing") {
+                        // Refresh list to show updated status
+                        val currentNotes = _state.value.notes.map {
+                            if (it.id == note.id) updated else it
+                        }
+                        _state.value = _state.value.copy(notes = currentNotes)
+                        if (_state.value.selectedNote?.id == note.id) {
+                            _state.value = _state.value.copy(selectedNote = updated)
+                        }
+                    }
                 } catch (_: Exception) {}
             }
+            // If still transcribing, poll again after delay
+            val stillTranscribing = _state.value.notes.any { it.transcriptionStatus == "transcribing" }
+            if (stillTranscribing) {
+                delay(10_000)
+                loadNotes()
+            }
+        }
+    }
+
+    fun selectNote(note: MeetingNote) {
+        _state.value = _state.value.copy(selectedNote = note)
+        viewModelScope.launch {
+            try {
+                // Fetch full note with photos
+                val full = repository.getMeetingNote(note.id)
+                _state.value = _state.value.copy(selectedNote = full)
+                // Check transcription if still processing
+                if (full.transcriptionStatus == "transcribing") {
+                    val updated = repository.checkTranscription(note.id)
+                    val photos = try { repository.getPhotos(note.id) } catch (_: Exception) { full.photos }
+                    _state.value = _state.value.copy(selectedNote = updated.copy(photos = photos))
+                }
+            } catch (_: Exception) {}
         }
     }
 
@@ -175,6 +210,45 @@ class MeetingNotesViewModel @Inject constructor(
                 _state.value = _state.value.copy(selectedNote = updated)
                 loadNotes()
             } catch (_: Exception) {}
+        }
+    }
+
+    fun uploadPhoto(meetingId: String, photoFile: File) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isUploadingPhoto = true)
+            try {
+                val photo = repository.uploadPhoto(meetingId, photoFile)
+                val current = _state.value.selectedNote
+                if (current != null && current.id == meetingId) {
+                    _state.value = _state.value.copy(
+                        selectedNote = current.copy(photos = current.photos + photo),
+                        isUploadingPhoto = false,
+                    )
+                } else {
+                    _state.value = _state.value.copy(isUploadingPhoto = false)
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isUploadingPhoto = false,
+                    error = "Photo upload failed: ${e.message}",
+                )
+            }
+        }
+    }
+
+    fun deletePhoto(meetingId: String, photoId: String) {
+        viewModelScope.launch {
+            try {
+                repository.deletePhoto(meetingId, photoId)
+                val current = _state.value.selectedNote
+                if (current != null && current.id == meetingId) {
+                    _state.value = _state.value.copy(
+                        selectedNote = current.copy(photos = current.photos.filter { it.id != photoId })
+                    )
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = "Delete failed: ${e.message}")
+            }
         }
     }
 

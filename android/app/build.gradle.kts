@@ -82,6 +82,9 @@ dependencies {
     // Charts
     implementation("com.patrykandpatrick.vico:compose-m3:1.13.1")
 
+    // Image loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
