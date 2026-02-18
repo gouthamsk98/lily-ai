@@ -11,6 +11,7 @@ import com.lilyai.app.data.remote.ApiService
 import com.lilyai.app.data.repository.AuthRepositoryImpl
 import com.lilyai.app.data.repository.ExpenseRepositoryImpl
 import com.lilyai.app.data.repository.MeetingNoteRepositoryImpl
+import com.lilyai.app.vadsensor.face.KnownFaceStore
 import com.lilyai.app.domain.repository.AuthRepository
 import com.lilyai.app.domain.repository.ExpenseRepository
 import com.lilyai.app.domain.repository.MeetingNoteRepository
@@ -78,6 +79,11 @@ object AppModule {
 
     @Provides
     fun provideMeetingNoteDao(db: AppDatabase): MeetingNoteDao = db.meetingNoteDao()
+
+    @Provides
+    @Singleton
+    fun provideKnownFaceStore(@ApplicationContext context: Context): KnownFaceStore =
+        KnownFaceStore(context)
 
     @Provides
     @Singleton

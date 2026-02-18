@@ -64,3 +64,10 @@ variable "web_image" {
   type        = string
   default     = "public.ecr.aws/docker/library/nginx:alpine"
 }
+
+variable "openai_api_key" {
+  description = "OpenAI API key for Lily voice assistant"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

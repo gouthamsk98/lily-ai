@@ -88,6 +88,7 @@ async fn main() {
         .route("/daily-status", get(api::daily_status::check_status))
         .route("/daily-status/submit", post(api::daily_status::submit_day))
         .route("/budget", get(api::budget::get_budget).put(api::budget::set_budget))
+        .route("/lily/ws", get(api::lily_ws::ws_handler))
         .with_state(pool.clone())
         .merge(notification_routes)
         .merge(meeting_routes)

@@ -119,6 +119,7 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "SNS_PLATFORM_APPLICATION_ARN", value = "" },
       { name = "MEETING_AUDIO_S3_BUCKET", value = "lily-ai-meeting-audio" },
       { name = "RUST_LOG", value = "lily_ai_backend=info,tower_http=info" },
+      { name = "OPENAI_API_KEY", value = var.openai_api_key },
     ]
     logConfiguration = {
       logDriver = "awslogs"

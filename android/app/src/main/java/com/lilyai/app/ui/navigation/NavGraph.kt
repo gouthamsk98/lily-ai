@@ -16,8 +16,11 @@ import com.lilyai.app.ui.screens.addexpense.AddExpenseScreen
 import com.lilyai.app.ui.screens.analytics.AnalyticsScreen
 import com.lilyai.app.ui.screens.dashboard.DashboardScreen
 import com.lilyai.app.ui.screens.history.HistoryScreen
+import com.lilyai.app.ui.screens.lily.LilyScreen
 import com.lilyai.app.ui.screens.login.LoginScreen
 import com.lilyai.app.ui.screens.meetings.MeetingNotesScreen
+import com.lilyai.app.vadsensor.VadBridgeScreen
+import com.lilyai.app.vadsensor.face.FaceRegistrationScreen
 
 sealed class Screen(val route: String, val label: String) {
     data object Login : Screen("login", "Login")
@@ -26,10 +29,12 @@ sealed class Screen(val route: String, val label: String) {
     data object History : Screen("history", "History")
     data object Meetings : Screen("meetings", "Meetings")
     data object Analytics : Screen("analytics", "Analytics")
+    data object Lily : Screen("lily", "Lily")
+    data object VadBridge : Screen("vad_bridge", "VAD")
 }
 
 private val bottomNavItems = listOf(
-    Screen.Dashboard, Screen.AddExpense, Screen.History, Screen.Meetings, Screen.Analytics
+    Screen.Dashboard, Screen.AddExpense, Screen.History, Screen.Meetings, Screen.Lily, Screen.VadBridge
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +59,8 @@ fun NavGraph() {
                                         Screen.AddExpense -> Icons.Default.Add
                                         Screen.History -> Icons.Default.List
                                         Screen.Meetings -> Icons.Default.Mic
-                                        Screen.Analytics -> Icons.Default.Info
+                                        Screen.Lily -> Icons.Default.Star
+                                        Screen.VadBridge -> Icons.Default.Sensors
                                         else -> Icons.Default.Home
                                     },
                                     contentDescription = screen.label,
@@ -96,6 +102,15 @@ fun NavGraph() {
             composable(Screen.History.route) { HistoryScreen() }
             composable(Screen.Meetings.route) { MeetingNotesScreen() }
             composable(Screen.Analytics.route) { AnalyticsScreen() }
+            composable(Screen.Lily.route) { LilyScreen() }
+            composable(Screen.VadBridge.route) {
+                VadBridgeScreen(
+                    onManageFaces = { navController.navigate("face_registration") }
+                )
+            }
+            composable("face_registration") {
+                FaceRegistrationScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }
